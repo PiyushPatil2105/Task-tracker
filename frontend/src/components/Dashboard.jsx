@@ -1,13 +1,14 @@
 import React from 'react';
 
 const Dashboard = ({ tasks }) => {
-  const total = tasks.length;
-  const completed = tasks.filter((t) => t.status === 'completed').length;
-  const inProgress = tasks.filter((t) => t.status === 'in-progress').length;
-  const pending = tasks.filter((t) => t.status === 'todo').length;
+  const safeTasks = Array.isArray(tasks) ? tasks : [];
+  const total = safeTasks.length;
+  const completed = safeTasks.filter((t) => t.status === 'completed').length;
+  const inProgress = safeTasks.filter((t) => t.status === 'in-progress').length;
+  const pending = safeTasks.filter((t) => t.status === 'todo').length;
   
   // Urgent: High priority tasks that are not completed
-  const urgent = tasks.filter((t) => t.priority === 'high' && t.status !== 'completed').length;
+  const urgent = safeTasks.filter((t) => t.priority === 'high' && t.status !== 'completed').length;
 
   const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
 

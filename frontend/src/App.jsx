@@ -7,7 +7,13 @@ import TaskModal from './components/TaskModal';
 import Toast from './components/Toast';
 
 // API Base URL
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/tasks';
+let API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/tasks';
+
+// Self-heal: Automatically append '/api/tasks' if only the root URL is configured
+if (API_URL && !API_URL.endsWith('/api/tasks')) {
+  const normalized = API_URL.replace(/\/$/, '');
+  API_URL = `${normalized}/api/tasks`;
+}
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -85,6 +91,9 @@ function App() {
         throw new Error('Failed to fetch tasks');
       }
       const data = await response.json();
+      if (!Array.isArray(data)) {
+        throw new Error('API response was not an array of tasks. Please verify your backend configuration.');
+      }
       setTasks(data);
     } catch (error) {
       addToast(error.message || 'Error connecting to server', 'error');
@@ -196,7 +205,9 @@ function App() {
   };
 
   // Extract unique categories from tasks list to enrich drop-down selection
-  const uniqueCategories = [...new Set(tasks.map((t) => t.category))].filter(Boolean);
+  const uniqueCategories = Array.isArray(tasks)
+    ? [...new Set(tasks.map((t) => t.category))].filter(Boolean)
+    : [];
 
   return (
     <div className="app-container">
@@ -235,7 +246,7 @@ function App() {
             <div className="logo-icon" style={{ animation: 'spin 1s linear infinite', margin: '0 auto 1rem auto' }}>◌</div>
             <p className="gradient-text" style={{ fontWeight: 600 }}>Syncing task database...</p>
           </div>
-        ) : tasks.length > 0 ? (
+        ) : Array.isArray(tasks) && tasks.length > 0 ? (
           tasks.map((task) => (
             <TaskCard
               key={task._id}
